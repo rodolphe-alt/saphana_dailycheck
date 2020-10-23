@@ -1,3 +1,4 @@
+-- bundle version 20201022
 -- create the file /opt/scripts/moni_hana/dailycheck_saphana_sqlcode.txt with the content below
 /D:-- healtcheck CPU since 24H --
 /R:select HOST, TIME, ROUND(MEMORY_USED/1024/1024/1024,2) as "MEMORY_USED_GB", CPU, ACTIVE_THREAD_COUNT, WAITING_THREAD_COUNT, MVCC_VERSION_COUNT, CS_UNLOAD_COUNT  from "SYS"."M_LOAD_HISTORY_SERVICE" where TIME between ADD_SECONDS(current_timestamp, -86400) and current_timestamp and PORT='SAPHANA_INDEXPORT' and CPU>60 order by TIME desc;
