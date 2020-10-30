@@ -22,6 +22,7 @@ from prettytable import PrettyTable
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 import locale
+import traceback
 locale.setlocale(locale.LC_ALL, 'fr_FR.utf-8')
 
 # timestamp
@@ -50,11 +51,9 @@ script_srv_server = socket.gethostname()
 
 # Hana remote connexion
 connection = pyhdb.connect(SAPHANA_HOSTNAME, SAPHANA_SQLPORT, SAPHANA_ADMIN_LOGIN, SAPHANA_ADMIN_PWD)
+pyhdb.protocol.constants.MAX_MESSAGE_SIZE = 2**19			# The default value is 2**17, which is about 130KB
+pyhdb.protocol.constants.MAX_SEGMENT_SIZE = pyhdb.protocol.constants.MAX_MESSAGE_SIZE - 32
 cursor = connection.cursor()
-
-# SMTP server
-if Mode_console_or_email == 'email':
-	smtpserver = smtplib.SMTP(Email_server, Email_port)
 
 # Store the reference, in case you want to show things again in standard output
 old_stdout = sys.stdout
@@ -76,26 +75,52 @@ if Mode_console_or_email == 'email':
 try:
 	with open(file_src, 'r') as inf:
 		for line in inf:
-			parts = line.split()
-			if len(parts) > 1:
+			if len(line)  > 1:
 				chara = line[0:3]
+				display_error = 0
+				error_detail = 'null'
 				if chara == "/D:":
 					count = count + 1
 					if Mode_console_or_email == 'console': print("\n", count, line[3:])
 					if Mode_console_or_email == 'email': html = html + "<h2>" + str(count) + line[3:] + "</h2>"
-				if (len(parts) > 1 and chara == "/R:"):
-					command_sql = line[3:].replace('SAPHANA_SCHEMA',SAPHANA_SCHEMA)
-					command_sql = command_sql.replace('SAPHANA_INDEXPORT',SAPHANA_INDEXPORT)
-					cursor.execute(command_sql)
-					from prettytable import from_db_cursor
-					mytable = from_db_cursor(cursor)
-					print(mytable)
-					#if Mode_console_or_email == 'console': print(mytable)
+				if chara == "/R:":
+					try:
+						command_sql = line[3:].replace('SAPHANA_SCHEMA',SAPHANA_SCHEMA)
+						command_sql = command_sql.replace('SAPHANA_INDEXPORT',SAPHANA_INDEXPORT)
+						cursor.execute(command_sql)
+						from prettytable import from_db_cursor
+						mytable = from_db_cursor(cursor)
+						print(mytable)
+						if Mode_console_or_email == 'email':
+							html = html + mytable.get_html_string(attributes={
+								'border': 1,
+								'style': 'border-width: 1px; border-collapse: collapse;'
+							}) + "<hr>"
+					except Exception:
+						display_error = 1
+						error_detail = traceback.format_exc()
+				if (chara == "/S:" and line.find('1969700') > 0):
+					sql_file = line[3:]
+					sql_file = sql_file.replace('\n','')
+					try:
+						sql_file_content = open(sql_file)
+						sql_as_string = sql_file_content.read()
+						cursor.execute(sql_as_string)
+						from prettytable import from_db_cursor
+						mytable = from_db_cursor(cursor)
+						print(mytable)
+						if Mode_console_or_email == 'email':
+							html = html + mytable.get_html_string(attributes={
+								'border': 1,
+								'style': 'border-width: 1px; border-collapse: collapse;'
+							}) + "<hr>"
+					except Exception:
+						display_error = 1
+						error_detail = traceback.format_exc()
+				if display_error == 1:
+					print("====> an error has been occured with the sql : %s" % error_detail)
 					if Mode_console_or_email == 'email':
-						html = html + mytable.get_html_string(attributes={
-							'border': 1,
-							'style': 'border-width: 1px; border-collapse: collapse;'
-						}) + "<hr>"
+						html = html + ("===> an error has been occured with the sql command : %s<br>" % error_detail)
 
 finally:
 	inf.close()
@@ -121,12 +146,14 @@ if Mode_console_or_email == 'console':
 	print(result_string)
 
 if Mode_console_or_email == 'email':
+	# SMTP server
+	smtpserver = smtplib.SMTP(Email_server, Email_port)
+	# MSG building
 	msg = MIMEMultipart('alternative')
 	msg['Subject'] = ("daily monitoring %s" % (SAPHANA_SID))
 	smtpserver.ehlo()
 	msg['From'] = Email_sender
 	msg['To'] = Email_receiver
-	#msg.attach(part1)
 	msg.attach(part2)
 	smtpserver.sendmail(Email_sender, Email_receiver, msg.as_string())
 	print("email sent !")
@@ -139,5 +166,3 @@ outF.close()
 
 connection.commit()
 connection.close()
-
-
