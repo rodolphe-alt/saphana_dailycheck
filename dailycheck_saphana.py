@@ -45,8 +45,8 @@ Email_sender = 'From@gmail'
 Email_receiver = 'To@gmail'
 Email_server = 'smtp.orange.fr'
 Email_port = '25'
-Mode_console_or_email='email'			# values email or console
-#Mode_console_or_email='console'
+#Mode_console_or_email='email'			# values email or console
+Mode_console_or_email='console'
 script_srv_server = socket.gethostname()
 
 # Hana remote connexion
