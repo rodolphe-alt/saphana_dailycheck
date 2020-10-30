@@ -1,7 +1,6 @@
--- bundle version 20201022
--- create the file /opt/scripts/moni_hana/dailycheck_saphana_sqlcode.txt with the content below
-/D:-- healtcheck CPU since 24H --
-/R:select HOST, TIME, ROUND(MEMORY_USED/1024/1024/1024,2) as "MEMORY_USED_GB", CPU, ACTIVE_THREAD_COUNT, WAITING_THREAD_COUNT, MVCC_VERSION_COUNT, CS_UNLOAD_COUNT  from "SYS"."M_LOAD_HISTORY_SERVICE" where TIME between ADD_SECONDS(current_timestamp, -86400) and current_timestamp and PORT='SAPHANA_INDEXPORT' and CPU>60 order by TIME desc;
+-- bundle version 20201030
+/D:-- healtcheck CPU since 24H and top 20
+/R:select TOP 20 HOST, TIME, ROUND(MEMORY_USED/1024/1024/1024,2) as "MEMORY_USED_GB", CPU, ACTIVE_THREAD_COUNT, WAITING_THREAD_COUNT, MVCC_VERSION_COUNT, CS_UNLOAD_COUNT  from "SYS"."M_LOAD_HISTORY_SERVICE" where TIME between ADD_SECONDS(current_timestamp, -86400) and current_timestamp and PORT='SAPHANA_INDEXPORT' and CPU>60 order by TIME desc;
 
 /D:-- peak memory usage since 24H
 /R:select ROUND(MAX(MEMORY_USED/1024/1024/1024),2) as "TOP_MEMORY_USED_GB" from "SYS"."M_LOAD_HISTORY_SERVICE" where TIME between ADD_SECONDS(current_timestamp, -86400) and current_timestamp and PORT='SAPHANA_INDEXPORT';
@@ -41,3 +40,21 @@
 
 /D:-- last 5 Out of memory
 /R:SELECT top 5 * from M_OUT_OF_MEMORY_EVENTS order by TIME DESC;
+
+/D:-- Evaluation of CHECK_TABLE_CONSISTENCY results
+/S:/opt/scripts/moni_hana/1969700/HANA_Consistency_CheckTableConsistency_Results_2.00.040+.txt
+
+/D:-- Check for potentially critical historic time frames
+/S:/opt/scripts/moni_hana/1969700/HANA_Global_CriticalTimeFrames_2.00.010+.txt
+
+/D:-- Overview of out of memory (OOM) situations
+/S:/opt/scripts/moni_hana/1969700/HANA_Memory_OutOfMemoryEvents_1.00.120+.txt
+
+/D:-- Memory overview
+/S:/opt/scripts/moni_hana/1969700/HANA_Memory_Overview_2.00.040+.txt
+
+/D:-- General SAP HANA checks
+/S:/opt/scripts/moni_hana/1969700/HANA_Configuration_MiniChecks_2.00.040+.txt
+
+/D:-- Security related check list
+/S:/opt/scripts/moni_hana/1969700/HANA_Security_MiniChecks_2.00.030+.txt
