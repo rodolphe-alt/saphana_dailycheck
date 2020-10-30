@@ -1,4 +1,4 @@
-# saphana_dailycheck<br>
+# SAP HANA Dailycheck by mail<br>
 how to monitor a SAP HANA every morning by mail like a dailycheck<br>
 SQL Standard query from 1969700 and custom query<br>
 <hr>
