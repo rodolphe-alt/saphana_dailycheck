@@ -14,8 +14,8 @@
 /D:-- last backup db
 /R:SELECT top 5 entry_type_name,sys_start_time,sys_end_time,state_name FROM SYS.M_BACKUP_CATALOG order by entry_id desc;
 
-/Dno:-- last backups log since 3 days
-/Rno:SELECT entry_type_name,sys_start_time,sys_end_time,state_name FROM SYS.M_BACKUP_CATALOG where entry_type_name != 'log backup' and sys_start_time between ADD_DAYS(current_timestamp, -3) and current_timestamp order by entry_id desc;
+/D:-- last backups log since 3 days
+/R:SELECT entry_type_name,sys_start_time,sys_end_time,state_name FROM SYS.M_BACKUP_CATALOG where entry_type_name != 'log backup' and sys_start_time between ADD_DAYS(current_timestamp, -3) and current_timestamp order by entry_id desc;
 
 /D:-- 1977214 - SAP HANA: Growing number of rowstore table versions when a persistent sequence is used.
 /R:SELECT * FROM M_MVCC_TABLES where NAME='NUM_VERSIONS' and PORT='SAPHANA_INDEXPORT';
