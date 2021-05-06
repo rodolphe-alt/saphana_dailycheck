@@ -7,6 +7,13 @@ How to monitor a SAP HANA every morning by mail like a dailycheck<br>
 * minicheck<br>
 * security check<br>
 <br>
+in next release : <br>
+* lock users<br>
+* HSR monitoring<br>
+* alert list<br>
+* I/O KPI<br>
+* global performances KPI<br>
+<br>
 <br>
 reco : install it on toolbox OS instead SAP HANA appliance<br>
 <br>
